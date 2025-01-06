@@ -11,7 +11,6 @@ pub struct Device {
 #[derive(Debug, Deserialize)]
 pub struct Hdl {
 	pub top: Option<String>,
-	pub include: Vec<PathBuf>,
 	pub standard: String,
 }
 
