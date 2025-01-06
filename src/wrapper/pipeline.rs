@@ -238,7 +238,7 @@ pub enum EvaluationError {
 
 #[derive(Error, Debug)]
 pub enum PipelineError {
-	#[error("Failed to spawn pipeline shell")]
+	#[error("Failed to spawn pipeline shell: {0}")]
 	Spawn(#[source] io::Error),
 
 	#[error("Pipeline run failed with exit code: {0:?}")]

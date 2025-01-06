@@ -25,7 +25,7 @@ impl GowinEda {
 
 	pub fn from_file(path: impl AsRef<Path>) -> Option<Self> {
 		let path = fs::read_to_string(path).ok()?;
-		Some(Self::new(path))
+		Some(Self::new(path.trim()))
 	}
 
 	pub fn pipeline(&self) -> Pipeline {
