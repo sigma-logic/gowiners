@@ -5,7 +5,8 @@ use std::{
 
 use cfg_if::cfg_if;
 
-use crate::Pipeline;
+use super::pipeline::Pipeline;
+use crate::wrapper::programmer::Programmer;
 
 #[derive(Debug, Clone)]
 pub struct GowinEda {
@@ -28,16 +29,22 @@ impl GowinEda {
 	}
 
 	pub fn pipeline(&self) -> Pipeline {
-		cfg_if! {
-			if #[cfg(target_os = "windows")] {
-				let bin_suffix = ".exe";
-			} else {
-				let bin_suffix = "";
-			}
-		}
-
-		let bin_path = self.home.join(format!("IDE/bin/gw_sh{bin_suffix}"));
-
+		let bin_path = self.home.join(format!("IDE/bin/gw_sh{BIN_SUFFIX}"));
 		Pipeline::new(&bin_path)
+	}
+
+	pub fn programmer(&self) -> Programmer {
+		let bin_path = self
+			.home
+			.join(format!("Programmer/bin/programmer_cli{BIN_SUFFIX}"));
+		Programmer::new(&bin_path)
+	}
+}
+
+cfg_if! {
+	if #[cfg(target_os = "windows")] {
+		const BIN_SUFFIX: &str = ".exe";
+	} else {
+		const BIN_SUFFIX: &str = "";
 	}
 }

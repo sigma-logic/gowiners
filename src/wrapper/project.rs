@@ -23,14 +23,21 @@ pub enum MaybeList<T> {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ProgrammerPreset {
-	pub op: Option<String>,
-	pub cable: Option<String>,
-	pub frequency: Option<String>,
-	pub bitstream: Option<String>,
+pub enum Bitstream {
+	Fs(PathBuf)
+}
 
+#[derive(Debug, Deserialize)]
+pub struct ProgrammerPreset {
 	#[serde(flatten)]
-	pub overrides: HashMap<String, ProgrammerPreset>,
+	pub args: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ProgrammerConfig {
+	#[serde(flatten)]
+	pub args: HashMap<String, String>,
+	pub preset: HashMap<String, ProgrammerPreset>
 }
 
 #[derive(Debug, Deserialize)]
@@ -40,5 +47,5 @@ pub struct Project {
 	pub device: Device,
 	pub hdl: Hdl,
 	pub files: HashMap<String, MaybeList<PathBuf>>,
-	pub programmer: ProgrammerPreset,
+	pub programmer: ProgrammerConfig,
 }

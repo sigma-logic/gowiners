@@ -8,7 +8,7 @@ use std::{
 use thiserror::Error;
 use tracing::error;
 
-use crate::{MaybeList, Project};
+use super::project::{MaybeList, Project};
 
 #[derive(Debug)]
 pub struct TclCommand {
@@ -182,7 +182,7 @@ impl Pipeline {
 }
 
 impl Pipeline {
-	pub fn evaluate(&mut self, project: &Project) -> Result<(), EvaluationError> {
+	pub fn configure(&mut self, project: &Project) -> Result<(), EvaluationError> {
 		self.push(commands::SetDevice {
 			family: &project.device.family,
 			part: &project.device.part,

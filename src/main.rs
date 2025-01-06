@@ -1,6 +1,6 @@
 use std::process::Termination;
-use gowiners::cli::cli;
+use gowiners::cli::run;
 
 fn main() -> impl Termination {
-   cli()
+   run()
 }

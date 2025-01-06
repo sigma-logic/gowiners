@@ -13,7 +13,6 @@ name = "key-led"
 version = 5
 
 # Device options
-# Go to Gowin IDE or board specs to find out
 [device]
 family = "GW5AST-138B"
 part = "GW5AST-LV138FPG676AC1/I0"
@@ -29,26 +28,23 @@ include = ["include"]
 
 # Project files
 [files]
-# Physical constraint
 cst = "phy.cst"
-# Or vhdl
 verilog = [
-  "rtl/top.sv"
+	"rtl/top.sv"
 ]
 
-# Programmer configuration (WIP)
+# Programmer config
 [programmer]
-bitstream = "fs"
+# Bitstream file
+fs = "impl/pnr/project.fs"
 frequency = "2.5Mhz"
 cable = "Gowin USB Cable(FT2CH)"
 
-# SRAM preset
-[programmer.sram]
-op = "SRAM Program"
+# SRAM Preset
+preset.sram = { op = "2" } # SRAM Program
+# External flash burn preset
+preset.burn = { op = "53" } # exFlash Erase,Program 5A
 
-# exFlash burn preset
-[programmer.burn]
-op = "exFlash Erase,Program 5A"
 ```
 
 #### 2. Run implementation via cli
@@ -120,11 +116,9 @@ Mon Jan  6 14:14:16 2025
 Completed
 ```
 
-#### 3. Flash bitstream (WIP)
+#### 3. Flash bitstream
 Drive your design in real life
 ```bash
 # Where `sram` is programmer preset defined earlier in Gowiners.toml
-gowiners programmer flash sram
-# You can flatten `flash` with `impl`
-gowiners impl --flash sram
+gowiners flash sram
 ```
