@@ -1,0 +1,37 @@
+name = "key-led"
+version = 5
+
+# Device options
+[device]
+family = "GW5AST-138B"
+part = "GW5AST-LV138FPG676AC1/I0"
+
+# Hdl options
+[hdl]
+# Use System Verilog 2017
+standard = "sysv2017"
+# Top module name
+top = "top"
+# Dirs to include
+include = ["include"]
+
+# Project files
+[files]
+cst = "phy.cst"
+verilog = [
+	"rtl/top.sv"
+]
+
+# Programmer presets
+[programmer]
+bitstream = "fs"
+frequency = "2.5Mhz"
+cable = "Gowin USB Cable(FT2CH)"
+
+# SRAM preset
+[programmer.sram]
+op = "SRAM Program"
+
+# exFlash burn preset
+[programmer.burn]
+op = "exFlash Erase,Program 5A"

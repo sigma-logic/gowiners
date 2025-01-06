@@ -1,0 +1,5 @@
+IO_LOC  "led" N23;
+IO_PORT "led" DRIVE=8      BANK_VCCIO=3.3;
+
+IO_LOC  "btn" K16;
+IO_PORT "btn" PULL_MODE=UP BANK_VCCIO=3.3;

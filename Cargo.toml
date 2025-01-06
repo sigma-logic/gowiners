@@ -1,0 +1,23 @@
+[package]
+resolver = "2"
+name = "gowiners"
+version = "0.1.0"
+edition = "2021"
+authors = ["Danil Karpenko <limpix31@gmail.com>"]
+description = "Gowin EDA thin oxidized wrapper"
+keywords = ["hdl", "hardware", "gowin", "eda", "cli"]
+categories = ["development-tools"]
+readme = "readme.md"
+repository = "https://github.com/sigma-logic/gowiners.git"
+homepage = "https://github.com/sigma-logic/gowiners.git#readme"
+license = "MIT"
+
+[dependencies]
+tracing = { version = "0.1" }
+thiserror = { version = "2" }
+cfg-if = { version = "1" }
+serde = { version = "1", features = ["derive"] }
+toml = { version = "0.8" }
+bpaf = { version = "0.9", features = ["batteries", "bright-color", "autocomplete"] }
+anyhow = { version = "1" }
+colored = { version = "2" }
