@@ -4,7 +4,7 @@ use std::{
 	path::{Path, PathBuf},
 	process::{Command, ExitCode, Stdio},
 };
-
+use itertools::Itertools;
 use thiserror::Error;
 use tracing::error;
 
@@ -196,6 +196,15 @@ impl Pipeline {
 			},
 			value: &project.hdl.standard,
 		});
+
+		if let Some(include_dirs) = &project.hdl.include {
+			let pathlist = include_dirs.iter().map(stringify_path).collect::<Result<Vec<String>, _>>()?.join(";");
+
+			self.push(commands::SetOption {
+				name: "include_path",
+				value: &pathlist,
+			});
+		}
 
 		self.push(commands::SetOption {
 			name: "top_module",

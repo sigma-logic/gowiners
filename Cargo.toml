@@ -1,7 +1,7 @@
 [package]
 resolver = "2"
 name = "gowiners"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["Danil Karpenko <limpix31@gmail.com>"]
 description = "Gowin EDA thin oxidized wrapper"
@@ -20,4 +20,5 @@ serde = { version = "1", features = ["derive"] }
 toml = { version = "0.8" }
 bpaf = { version = "0.9", features = ["batteries", "bright-color", "autocomplete"] }
 anyhow = { version = "1" }
-colored = { version = "2" }
+colored = { version = "3" }
+itertools = "0.14"
