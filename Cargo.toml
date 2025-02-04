@@ -21,4 +21,4 @@ toml = { version = "0.8" }
 bpaf = { version = "0.9", features = ["batteries", "bright-color", "autocomplete"] }
 anyhow = { version = "1" }
 colored = { version = "3" }
-itertools = "0.14"
+glob = { version = "0.3" }

@@ -22,6 +22,15 @@ pub enum MaybeList<T> {
 	List(Vec<T>),
 }
 
+impl<T: Clone> MaybeList<T> {
+	pub fn to_vec(&self) -> Vec<T> {
+		match self {
+			MaybeList::Single(it) => vec![it.clone()],
+			MaybeList::List(it) => it.clone(),
+		}
+	}
+}
+
 #[derive(Debug, Deserialize)]
 pub enum Bitstream {
 	Fs(PathBuf)
@@ -58,7 +67,7 @@ pub struct Project {
 	pub version: u32,
 	pub device: Device,
 	pub hdl: Hdl,
-	pub files: HashMap<String, MaybeList<PathBuf>>,
+	pub files: HashMap<String, MaybeList<String>>,
 	pub pnr: Option<PlaceAndRouteConfig>,
 	pub bitstream: Option<BitstreamConfig>,
 	pub programmer: ProgrammerConfig,

@@ -5,10 +5,11 @@ use std::{
 	process::{Command, ExitCode, Stdio},
 };
 
+use glob::glob;
 use thiserror::Error;
 use tracing::error;
 
-use super::project::{MaybeList, Project};
+use super::project::Project;
 use crate::pipeline::commands::ProjectOption;
 
 #[derive(Debug)]
@@ -357,19 +358,22 @@ impl Pipeline {
 		}
 
 		for (filetype, list) in project.files.iter() {
-			let paths = match list {
-				MaybeList::Single(it) => {
-					vec![stringify_path(it)?]
+			let mut paths = Vec::new();
+
+			for pattern in list.to_vec().into_iter() {
+				if let Ok(entries) = glob(&pattern) {
+					for entry in entries.flatten() {
+						paths.push(entry);
+					}
 				}
-				MaybeList::List(it) => it
-					.iter()
-					.map(stringify_path)
-					.collect::<Result<Vec<_>, _>>()?,
-			};
+			}
 
 			self.push(commands::AddFiles {
 				filetype: filetype.clone(),
-				files: paths,
+				files: paths
+					.into_iter()
+					.map(stringify_path)
+					.collect::<Result<Vec<_>, _>>()?,
 			});
 		}
 
