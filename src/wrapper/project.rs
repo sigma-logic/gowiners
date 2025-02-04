@@ -41,11 +41,25 @@ pub struct ProgrammerConfig {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct PlaceAndRouteConfig {
+	pub place_mode: Option<u32>,
+	pub route_mode: Option<u32>,
+	pub replicate: Option<bool>
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BitstreamConfig {
+	pub compress: Option<bool>
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Project {
 	pub name: String,
 	pub version: u32,
 	pub device: Device,
 	pub hdl: Hdl,
 	pub files: HashMap<String, MaybeList<PathBuf>>,
+	pub pnr: Option<PlaceAndRouteConfig>,
+	pub bitstream: Option<BitstreamConfig>,
 	pub programmer: ProgrammerConfig,
 }

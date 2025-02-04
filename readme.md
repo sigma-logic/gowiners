@@ -33,6 +33,16 @@ verilog = [
 	"rtl/top.sv"
 ]
 
+# Place And Route config
+[pnr]
+place_mode = 0
+route_mode = 1
+replicate = false
+
+# Bitstream generation config
+[bitstream]
+compress = true
+
 # Programmer config
 [programmer]
 # Bitstream file

@@ -4,11 +4,12 @@ use std::{
 	path::{Path, PathBuf},
 	process::{Command, ExitCode, Stdio},
 };
-use itertools::Itertools;
+
 use thiserror::Error;
 use tracing::error;
 
 use super::project::{MaybeList, Project};
+use crate::pipeline::commands::ProjectOption;
 
 #[derive(Debug)]
 pub struct TclCommand {
@@ -75,13 +76,13 @@ pub mod commands {
 	use super::TclCommand;
 
 	#[derive(Debug)]
-	pub struct AddFiles<'a> {
-		pub filetype: &'a str,
+	pub struct AddFiles {
+		pub filetype: String,
 		pub files: Vec<String>,
 	}
 
-	impl From<AddFiles<'_>> for TclCommand {
-		fn from(value: AddFiles<'_>) -> Self {
+	impl From<AddFiles> for TclCommand {
+		fn from(value: AddFiles) -> Self {
 			let mut tcl = TclCommand::new("add_file");
 
 			tcl.push_flag("type", value.filetype);
@@ -95,28 +96,49 @@ pub mod commands {
 	}
 
 	#[derive(Debug)]
-	pub struct SetDevice<'a> {
-		pub family: &'a str,
-		pub part: &'a str,
+	pub struct SetDevice {
+		pub family: String,
+		pub part: String,
 	}
 
-	impl From<SetDevice<'_>> for TclCommand {
-		fn from(value: SetDevice<'_>) -> Self {
+	impl From<SetDevice> for TclCommand {
+		fn from(value: SetDevice) -> Self {
 			TclCommand::new("set_device")
 				.flag("name", value.family)
 				.arg(value.part)
 		}
 	}
 
-	#[derive(Debug)]
-	pub struct SetOption<'a> {
-		pub name: &'a str,
-		pub value: &'a str,
+	#[derive(Debug, Clone)]
+	pub struct ProjectOption {
+		pub name: String,
+		pub value: String,
 	}
 
-	impl From<SetOption<'_>> for TclCommand {
-		fn from(value: SetOption<'_>) -> Self {
-			TclCommand::new("set_option").flag(value.name, value.value)
+	#[derive(Debug, Clone, Default)]
+	pub struct SetOptions(pub Vec<ProjectOption>);
+
+	impl SetOptions {
+		pub fn push(&mut self, option: impl Into<ProjectOption>) {
+			self.0.push(option.into());
+		}
+	}
+
+	impl From<SetOptions> for TclCommand {
+		fn from(value: SetOptions) -> Self {
+			let mut command = TclCommand::new("set_option");
+
+			for option in value.0 {
+				command.push_flag(option.name, option.value);
+			}
+
+			command
+		}
+	}
+
+	impl From<ProjectOption> for TclCommand {
+		fn from(value: ProjectOption) -> Self {
+			SetOptions(vec![value]).into()
 		}
 	}
 
@@ -134,6 +156,106 @@ pub mod commands {
 				Run::Pnr => "pnr",
 				Run::All => "all",
 			})
+		}
+	}
+}
+
+mod options {
+	use super::commands::ProjectOption;
+
+	#[derive(Debug, Clone)]
+	pub struct VerilogStd(pub String);
+
+	impl From<VerilogStd> for ProjectOption {
+		fn from(value: VerilogStd) -> Self {
+			ProjectOption {
+				name: "verilog_std".into(),
+				value: value.0,
+			}
+		}
+	}
+
+	#[derive(Debug, Clone)]
+	pub struct VhdlStd(pub String);
+
+	impl From<VhdlStd> for ProjectOption {
+		fn from(value: VhdlStd) -> Self {
+			ProjectOption {
+				name: "vhdl_std".into(),
+				value: value.0,
+			}
+		}
+	}
+
+	#[derive(Debug, Clone)]
+	pub struct IncludePath(pub String);
+
+	impl From<IncludePath> for ProjectOption {
+		fn from(value: IncludePath) -> Self {
+			ProjectOption {
+				name: "include_path".into(),
+				value: value.0,
+			}
+		}
+	}
+
+	#[derive(Debug, Clone)]
+	pub struct TopModule(pub String);
+
+	impl From<TopModule> for ProjectOption {
+		fn from(value: TopModule) -> Self {
+			ProjectOption {
+				name: "top_module".into(),
+				value: value.0,
+			}
+		}
+	}
+
+	#[derive(Debug, Copy, Clone)]
+	pub struct PlaceOption(pub u32);
+
+	impl From<PlaceOption> for ProjectOption {
+		fn from(value: PlaceOption) -> Self {
+			ProjectOption {
+				name: "place_option".into(),
+				value: value.0.to_string(),
+			}
+		}
+	}
+
+	#[derive(Debug, Copy, Clone)]
+	pub struct RouteOption(pub u32);
+
+	impl From<RouteOption> for ProjectOption {
+		fn from(value: RouteOption) -> Self {
+			ProjectOption {
+				name: "route_option".into(),
+				value: value.0.to_string(),
+			}
+		}
+	}
+
+	#[derive(Debug, Copy, Clone)]
+	pub struct ReplicateResources(pub bool);
+
+	impl From<ReplicateResources> for ProjectOption {
+		fn from(value: ReplicateResources) -> Self {
+			ProjectOption {
+				name: "replicate_resources".into(),
+				value: String::from(if value.0 { "1" } else { "0" }),
+			}
+		}
+	}
+
+	#[derive(Debug, Copy, Clone)]
+	pub struct BitstreamCompress(pub bool);
+
+	impl From<BitstreamCompress> for ProjectOption {
+		fn from(value: BitstreamCompress) -> Self {
+			ProjectOption {
+				name: "bit_compress".into(),
+				value: String::from(if value.0 { "1" } else { "0" }),
+			}
 		}
 	}
 }
@@ -182,34 +304,50 @@ impl Pipeline {
 }
 
 impl Pipeline {
-	pub fn configure(&mut self, project: &Project) -> Result<(), EvaluationError> {
+	pub fn configure(
+		&mut self,
+		project: &Project,
+	) -> Result<(), EvaluationError> {
 		self.push(commands::SetDevice {
-			family: &project.device.family,
-			part: &project.device.part,
+			family: project.device.family.clone(),
+			part: project.device.part.clone(),
 		});
 
-		self.push(commands::SetOption {
-			name: if project.hdl.standard.starts_with("vhdl") {
-				"vhdl_std"
-			} else {
-				"verilog_std"
-			},
-			value: &project.hdl.standard,
+		let mut options: commands::SetOptions = Default::default();
+
+		options.push(if project.hdl.standard.starts_with("vhdl") {
+			ProjectOption::from(options::VhdlStd(project.hdl.standard.clone()))
+		} else {
+			ProjectOption::from(options::VerilogStd(project.hdl.standard.clone()))
 		});
 
 		if let Some(include_dirs) = &project.hdl.include {
-			let pathlist = include_dirs.iter().map(stringify_path).collect::<Result<Vec<String>, _>>()?.join(";");
+			let pathlist = include_dirs
+				.iter()
+				.map(stringify_path)
+				.collect::<Result<Vec<String>, _>>()?
+				.join(";");
 
-			self.push(commands::SetOption {
-				name: "include_path",
-				value: &pathlist,
-			});
+			options.push(options::IncludePath(pathlist));
 		}
 
-		self.push(commands::SetOption {
-			name: "top_module",
-			value: project.hdl.top.as_ref().unwrap_or(&"top".to_owned()),
-		});
+		options.push(options::TopModule(
+			project.hdl.top.clone().unwrap_or("top".to_owned()),
+		));
+
+		if let Some(pnr) = &project.pnr {
+			options.push(options::PlaceOption(pnr.place_mode.unwrap_or(0)));
+			options.push(options::RouteOption(pnr.route_mode.unwrap_or(0)));
+			options.push(options::ReplicateResources(
+				pnr.replicate.unwrap_or_default(),
+			));
+		}
+
+		if let Some(bitstream) = &project.bitstream {
+			options.push(options::BitstreamCompress(
+				bitstream.compress.unwrap_or_default(),
+			));
+		}
 
 		fn stringify_path<T: AsRef<Path>>(
 			path: T,
@@ -230,10 +368,12 @@ impl Pipeline {
 			};
 
 			self.push(commands::AddFiles {
-				filetype,
+				filetype: filetype.clone(),
 				files: paths,
 			});
 		}
+
+		self.push(options);
 
 		Ok(())
 	}
